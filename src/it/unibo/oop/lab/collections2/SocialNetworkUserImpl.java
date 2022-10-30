@@ -1,7 +1,14 @@
 package it.unibo.oop.lab.collections2;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 
 /**
  * 
@@ -17,7 +24,8 @@ import java.util.List;
  *            Specific user type
  */
 public final class SocialNetworkUserImpl<U extends User> extends UserImpl implements SocialNetworkUser<U> {
-
+	
+    private final Map<String, Set<U>> friends;
     /*
      * 
      * [FIELDS]
@@ -56,6 +64,7 @@ public final class SocialNetworkUserImpl<U extends User> extends UserImpl implem
      */
     public SocialNetworkUserImpl(final String name, final String surname, final String user, final int userAge) {
         super(name, surname, user, userAge);
+        this.friends = new HashMap<>(); // inference of type variables
     }
 
     /*
@@ -64,19 +73,34 @@ public final class SocialNetworkUserImpl<U extends User> extends UserImpl implem
      * Implements the methods below
      */
 
-    @Override
     public boolean addFollowedUser(final String circle, final U user) {
-        return false;
+        Set<U> circleFriends = this.friends.get(circle);
+        if (circleFriends == null) {
+            circleFriends = new HashSet<>();
+            this.friends.put(circle, circleFriends);
+        }
+        return circleFriends.add(user);
     }
 
-    @Override
     public Collection<U> getFollowedUsersInGroup(final String groupName) {
-        return null;
+        final Collection<U> usersInCircle = this.friends.get(groupName);
+        if (usersInCircle != null) {
+            return new ArrayList<>(usersInCircle);
+        }
+        /*
+         * Return a very fast, unmodifiable, pre-cached empty list.
+         */
+        return Collections.emptyList();
     }
 
-    @Override
     public List<U> getFollowedUsers() {
-        return null;
+        /*
+         * Pre-populate a Set in order to prevent duplicates
+         */
+        final Set<U> followedUsers = new HashSet<>();
+        for (final Set<U> group : friends.values()) {
+            followedUsers.addAll(group);
+        }
+        return new ArrayList<>(followedUsers);
     }
-
 }
